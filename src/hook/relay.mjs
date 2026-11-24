@@ -68,6 +68,9 @@ try {
   const parsed = JSON.parse(raw);
   // Background hooks can reach the widget out of order, so each carries its start time.
   parsed.huddle_at = started;
+  // Where the session runs, so the widget can take you back to it.
+  parsed.huddle_origin = process.env.CLAUDE_CODE_ENTRYPOINT ?? "";
+  parsed.huddle_pid = Number(process.env.CLAUDE_PID) || process.ppid;
   // Requests go through whole, so the widget shows exactly what would be approved.
   body = JSON.stringify(kind === "event" ? trim(parsed) : parsed);
 } catch {

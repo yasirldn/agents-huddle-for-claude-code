@@ -61,6 +61,9 @@ function chime() {
   } catch {}
 }
 
+const goLabel = (session) =>
+  session.where === "vscode" ? "Go to its tab in VS Code" : session.where === "terminal" ? "Go to its terminal" : "Open its folder in VS Code";
+
 function activityLine(session) {
   if (session.status === "done" && session.activity === "Finished") return `Finished ${ago(session.lastEventAt)}`;
   return session.activity;
@@ -188,7 +191,7 @@ function Row({ session, index, expanded, onOpen }) {
     <div class=${cx("row", session.status)} style=${{ "--i": Math.min(index, 5) }} role="button" tabindex="0" onClick=${onOpen} onKeyDown=${onKey}>
       <${Summary} session=${session} />
       <div class="row-actions">
-        <${IconButton} small icon="arrow-up-right" label="Open in VS Code" onClick=${() => api.open(session.id)} />
+        <${IconButton} small icon="arrow-up-right" label=${goLabel(session)} onClick=${() => api.open(session.id)} />
         ${!session.request && html`<${IconButton} small icon="x" label="Dismiss" onClick=${() => api.dismiss(session.id)} />`}
       </div>
       ${expanded && session.request && html`<${Request} request=${session.request} />`}
@@ -342,7 +345,7 @@ function App({ boot }) {
               />`}
             `}
         <span class="grow" />
-        ${open && html`<${IconButton} icon="arrow-up-right" label="Open in VS Code" onClick=${() => api.open(open.id)} />`}
+        ${open && html`<${IconButton} icon="arrow-up-right" label=${goLabel(open)} onClick=${() => api.open(open.id)} />`}
         ${!collapsed && !open && html`<${IconButton} icon=${sound ? "volume-2" : "volume-x"} label=${sound ? "Sound is on" : "Sound is off"} onClick=${toggleSound} />`}
         <${IconButton} icon=${collapsed ? "chevron-down" : "chevron-up"} label=${collapsed ? "Expand" : "Collapse"} onClick=${() => setCollapsed(!collapsed)} />
         <${IconButton} icon="x" label="Minimise to the taskbar" onClick=${() => api.minimize()} />

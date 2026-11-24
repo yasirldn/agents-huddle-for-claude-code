@@ -1,10 +1,10 @@
 import { app, BrowserWindow, ipcMain, Menu, nativeImage, screen, shell, Tray } from "electron";
-import { execFile, execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadDemo } from "./demo.js";
+import { goToSession } from "./go-to.js";
 import * as hooks from "./hooks-config.js";
 import { createHookServer } from "./server.js";
 import { Huddle } from "./store.js";
@@ -334,28 +334,9 @@ function refreshRelay() {
   }
 }
 
-let editorPath;
-function findEditor() {
-  if (editorPath !== undefined) return editorPath;
-  editorPath = null;
-  if (process.platform !== "win32") return editorPath;
-  try {
-    const launcher = execFileSync("where.exe", ["code"], { encoding: "utf8", windowsHide: true })
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .find((line) => /code\.cmd$/i.test(line));
-    const candidate = launcher ? path.join(path.dirname(launcher), "..", "Code.exe") : null;
-    if (candidate && existsSync(candidate)) editorPath = candidate;
-  } catch {}
-  return editorPath;
-}
-
 function openSession(sessionId) {
-  const cwd = huddle.sessions.get(sessionId)?.cwd;
-  if (!cwd || demo) return;
-  const editor = findEditor();
-  if (editor) execFile(editor, [cwd], { windowsHide: true }, () => {});
-  else shell.openPath(cwd);
+  if (demo) return;
+  goToSession(shell, huddle.sessions.get(sessionId), (result) => trace("go to", sessionId, result));
 }
 
 // ---- state to the page and to disk ----

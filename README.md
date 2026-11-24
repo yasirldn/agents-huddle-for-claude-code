@@ -16,6 +16,7 @@ A small always-on-top widget for Windows that shows what each Claude Code sessio
 - A request card when a session needs permission, showing exactly what would run or change, with Allow, Deny or Decide in tab. Requests too long to show, or that ask to run outside the sandbox, can only be decided in the tab.
 - Questions a session asks, with its options as buttons
 - The plan, recent steps and last terminal output of any session you open
+- An arrow on each row that takes you to the session. A VS Code session opens its own Claude Code tab, and a terminal session brings its terminal window forward.
 
 The figures dance while their session works, jump when it needs you and hop once when it finishes. The session you messaged most recently is orange, and older ones shade through green to blue. Sound is off until you turn it on.
 
@@ -61,7 +62,8 @@ Permission requests and questions wait for your answer for up to five minutes. A
 - Tested on Windows 11 only
 - Allowing and denying were tested end to end. Answering a question from the widget follows the documented hook format but has not yet been tested in an interactive session.
 - Hooks must sit in the user settings file. In testing, hooks in a project's own settings file did not run for sessions in the VS Code extension.
-- Open in VS Code opens the session's folder. It cannot select a particular chat tab.
+- In Windows Terminal, the arrow brings the window forward but cannot pick the tab.
+- Going to a VS Code tab uses a link that the Claude Code extension provides, which could change in a later version. If it stops working, the arrow opens the session's folder.
 
 ## Tests
 

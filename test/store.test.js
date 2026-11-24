@@ -141,6 +141,19 @@ test("rows follow the last message sent, newest first, after anything that needs
   assert.deepEqual(order(), ["b", "a", "c"]);
 });
 
+test("each session remembers where it runs", () => {
+  const { send, huddle, row } = setup();
+  send("UserPromptSubmit", { prompt: "Go", huddle_origin: "claude-vscode", huddle_pid: 4242 });
+  assert.equal(row().where, "vscode");
+  assert.equal(huddle.sessions.get("a").pid, 4242);
+  huddle.apply({ session_id: "b", hook_event_name: "UserPromptSubmit", prompt: "Go", huddle_origin: "cli", huddle_pid: 77 });
+  assert.equal(row("b").where, "terminal");
+  huddle.apply({ session_id: "c", hook_event_name: "UserPromptSubmit", prompt: "Go" });
+  assert.equal(row("c").where, "");
+  send("PreToolUse", { tool_name: "Read", tool_use_id: "t", tool_input: {}, huddle_pid: "not a number" });
+  assert.equal(huddle.sessions.get("a").pid, 4242);
+});
+
 test("a question request exposes its options", () => {
   const { huddle, row } = setup();
   const questions = [{ question: "Which colour?", header: "Colour", multiSelect: false, options: [{ label: "Red", description: "Warm" }, { label: "Blue", description: "Cool" }] }];

@@ -28,7 +28,8 @@ const testPipe = () => {
 
 function runRelay(pipe, args, input, data = dataWithToken) {
   return new Promise((resolve) => {
-    const child = spawn(process.execPath, [relay, ...args], { env: { ...process.env, AGENTS_HUDDLE_PIPE: pipe, AGENTS_HUDDLE_DATA: data } });
+    const env = { ...process.env, AGENTS_HUDDLE_PIPE: pipe, AGENTS_HUDDLE_DATA: data, CLAUDE_CODE_ENTRYPOINT: "claude-vscode", CLAUDE_PID: "4242" };
+    const child = spawn(process.execPath, [relay, ...args], { env });
     let stdout = "";
     child.stdout.on("data", (chunk) => (stdout += chunk));
     child.on("close", (code) => resolve({ code, stdout }));
@@ -69,6 +70,8 @@ test("a background event is delivered, trimmed and stamped, and prints nothing",
     assert.equal(seen[0].tool_input.content.length, 4000);
     assert.equal(seen[0].tool_response.stdout.endsWith("END"), true);
     assert.equal(typeof seen[0].huddle_at, "number");
+    assert.equal(seen[0].huddle_origin, "claude-vscode");
+    assert.equal(seen[0].huddle_pid, 4242);
   } finally {
     await server.close();
   }

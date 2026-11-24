@@ -46,6 +46,8 @@ export class Huddle {
         id: event.session_id,
         n: this.figureSeq++,
         cwd: event.cwd ?? "",
+        origin: "",
+        pid: 0,
         title: "",
         namedBySession: false,
         phase: "idle",
@@ -70,6 +72,8 @@ export class Huddle {
     }
     session.lastEventAt = at;
     if (event.cwd) session.cwd = event.cwd;
+    if (typeof event.huddle_origin === "string" && event.huddle_origin) session.origin = event.huddle_origin.slice(0, 40);
+    if (Number.isInteger(event.huddle_pid) && event.huddle_pid > 0) session.pid = event.huddle_pid;
     if (event.session_title) {
       session.title = clip(event.session_title, 80);
       session.namedBySession = true;
@@ -301,6 +305,7 @@ export class Huddle {
       title: session.title || baseName(session.cwd) || "New session",
       project: baseName(session.cwd),
       cwd: session.cwd,
+      where: /vscode/i.test(session.origin ?? "") ? "vscode" : session.origin ? "terminal" : "",
       status,
       mood,
       activity,
