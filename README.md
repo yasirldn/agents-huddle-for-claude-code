@@ -6,6 +6,9 @@ A small always-on-top widget for Windows that shows what each Claude Code sessio
   <img src="docs/list.png" width="376" alt="The widget listing four agents, one waiting for approval to run a command" />
   <img src="docs/detail.png" width="376" alt="One agent opened, with its plan, recent steps and the command it is running" />
 </p>
+<p>
+  <img src="docs/collapsed.png" width="376" alt="The widget collapsed to a bar showing four agents" />
+</p>
 
 ## What it shows
 
