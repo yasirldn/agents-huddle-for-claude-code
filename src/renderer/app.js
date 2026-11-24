@@ -105,15 +105,24 @@ function Summary({ session }) {
 
 function Permission({ request }) {
   const settled = useSettled();
+  const box = useRef(null);
+  // Allow stays off until the whole request has been on screen.
+  const [read, setRead] = useState(!request.detail);
+  const atEnd = (element) => element.scrollTop + element.clientHeight >= element.scrollHeight - 2;
+  useLayoutEffect(() => {
+    if (box.current && atEnd(box.current)) setRead(true);
+  }, []);
   const act = (choice) => settled() && api.decide(request.id, choice);
+  const note = request.note || (read ? "" : "Scroll to the end to allow");
   return html`
     <div class="ask" onClick=${(event) => event.stopPropagation()}>
       <div class="ask-title">${request.title}</div>
       ${request.where && html`<div class="ask-where">${request.where}</div>`}
-      ${request.detail && html`<pre class=${cx("code", !request.mono && "plain")}>${request.detail}</pre>`}
-      ${request.note && html`<div class="ask-note">${request.note}</div>`}
+      ${request.detail &&
+      html`<pre ref=${box} class=${cx("code", !request.mono && "plain")} onScroll=${(event) => atEnd(event.currentTarget) && setRead(true)}>${request.detail}</pre>`}
+      ${note && html`<div class="ask-note">${note}</div>`}
       <div class="actions">
-        <button class="btn primary" disabled=${request.tabOnly} onClick=${() => act("allow")}>Allow</button>
+        <button class="btn primary" disabled=${request.tabOnly || !read} onClick=${() => act("allow")}>Allow</button>
         <button class="btn" onClick=${() => act("deny")}>Deny</button>
         <button class="link" onClick=${() => act("pass")}>Decide in tab</button>
       </div>

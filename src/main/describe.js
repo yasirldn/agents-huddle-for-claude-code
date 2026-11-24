@@ -1,3 +1,5 @@
+import path from "node:path";
+
 export function clip(text, max) {
   const flat = String(text ?? "").replace(/\s+/g, " ").trim();
   return flat.length > max ? flat.slice(0, max - 1).trimEnd() + "…" : flat;
@@ -7,11 +9,14 @@ export function baseName(file) {
   return String(file ?? "").split(/[\\/]/).filter(Boolean).pop() ?? "";
 }
 
+// The path from the session's folder, or the full path when the file sits outside it.
 function relativeTo(file, cwd) {
   const full = String(file ?? "");
   const root = String(cwd ?? "");
-  if (root && full.toLowerCase().startsWith(root.toLowerCase())) return full.slice(root.length).replace(/^[\\/]+/, "") || full;
-  return full;
+  if (!full || !root) return full;
+  const paths = /^[A-Za-z]:[\\/]|\\/.test(full + root) ? path.win32 : path.posix;
+  const inside = paths.relative(root, full);
+  return inside && !inside.startsWith("..") && !paths.isAbsolute(inside) ? inside : full;
 }
 
 const words = (name) => String(name ?? "").replace(/[_-]+/g, " ").trim();
@@ -75,8 +80,19 @@ function otherFields(tool, input) {
 const lines = (text) => String(text ?? "").split(/\r?\n/);
 const diff = (before, after) => [...lines(before).map((line) => `- ${line}`), ...lines(after).map((line) => `+ ${line}`)].join("\n");
 
+// Characters that would hide or reorder text, and long blank runs, are shown as
+// markers, so what the card shows is what would be approved.
+const HIDDEN_CHARACTERS = /[\u0000-\u0008\u000B-\u001F\u007F-\u009F​-‏‪-‮⁠-⁤⁦-⁩﻿]/g;
+function visible(text) {
+  return text
+    .replace(/\r\n?/g, "\n")
+    .replace(HIDDEN_CHARACTERS, (character) => `⟨U+${character.codePointAt(0).toString(16).toUpperCase().padStart(4, "0")}⟩`)
+    .replace(/[ \t]{20,}/g, (run) => ` ⟨${run.length} spaces⟩ `)
+    .replace(/(?:[ \t]*\n){4,}/g, (run) => `\n⟨${run.split("\n").length - 2} blank lines⟩\n`);
+}
+
 function request(tool, input, title, main, { where = "", mono = true } = {}) {
-  const text = [String(main ?? ""), ...otherFields(tool, input)].filter(Boolean).join("\n\n");
+  const text = visible([String(main ?? ""), ...otherFields(tool, input)].filter(Boolean).join("\n\n"));
   let note = "";
   if (input?.dangerouslyDisableSandbox === true) note = "Asks to run outside the sandbox, so decide in the tab";
   else if (text.length > MAX_DETAIL) note = "Too long to show in full here, so decide in the tab";

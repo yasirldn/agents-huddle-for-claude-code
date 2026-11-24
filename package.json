@@ -18,7 +18,7 @@
     "test": "node --test",
     "hooks": "node scripts/hooks.mjs",
     "icons": "node scripts/make-icons.mjs",
-    "package": "electron-packager . \"Agents Huddle\" --platform=win32 --arch=x64 --out=dist --overwrite --icon=assets/icon.ico --ignore=\"^/(\\.scratch|test|dist|docs|scripts)($|/)\" --ignore=\"^/node_modules/lucide-static/(dist|font|sprite\\.svg|icon-nodes\\.json|tags\\.json)\" --ignore=\"^/node_modules/@fontsource-variable/[^/]+/files/(?!.*latin-wght-normal\\.woff2$)\""
+    "package": "electron-packager . \"Agents Huddle\" --platform=win32 --arch=x64 --out=dist --overwrite --icon=assets/icon.ico --tmpdir=.packager-tmp --ignore=\"^/(\\.scratch|\\.packager-tmp|test|dist|docs|scripts)($|/)\" --ignore=\"^/node_modules/lucide-static/(dist|font|sprite\\.svg|icon-nodes\\.json|tags\\.json)\" --ignore=\"^/node_modules/@fontsource-variable/[^/]+/files/(?!.*latin-wght-normal\\.woff2$)\""
   },
   "dependencies": {
     "@fontsource-variable/geist-mono": "^5.3.0",

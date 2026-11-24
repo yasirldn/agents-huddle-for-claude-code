@@ -177,6 +177,18 @@ test("fields the card does not show by default are listed, and leaving the sandb
   assert.match(row().request.note, /outside the sandbox/);
 });
 
+test("a file outside the session's folder shows its full path, even when the folder names share a start", () => {
+  const { huddle, row } = setup();
+  huddle.addRequest("permission", { session_id: "a", cwd: "C:\\w\\app", tool_name: "Write", tool_input: { file_path: "C:\\w\\app-other\\x.js", content: "1" } });
+  assert.equal(row().request.where, "C:\\w\\app-other\\x.js");
+});
+
+test("characters that hide or reorder text, and long blank runs, show as markers", () => {
+  const { huddle, row } = setup();
+  huddle.addRequest("permission", { session_id: "a", tool_name: "Bash", tool_input: { command: "echo safe\u202Exe.sh\r\n\n\n\n\n\nrm -rf build" } });
+  assert.equal(row().request.detail, "echo safe⟨U+202E⟩xe.sh\n⟨5 blank lines⟩\nrm -rf build");
+});
+
 test("an edit shows the text it replaces and any replace-all switch", () => {
   const { huddle, row } = setup();
   huddle.addRequest("permission", { session_id: "a", cwd: "C:\\w", tool_name: "Edit", tool_input: { file_path: "C:\\w\\a.js", old_string: "let x", new_string: "const x", replace_all: true } });
