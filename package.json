@@ -1,0 +1,33 @@
+{
+  "name": "agents-huddle",
+  "productName": "Agents Huddle",
+  "version": "0.1.0",
+  "description": "A corner widget that shows what each Claude Code agent is doing and lets you approve or answer without opening the editor",
+  "private": true,
+  "license": "MIT",
+  "author": "Yasir",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yasirldn/agents-huddle-for-claude-code.git"
+  },
+  "type": "module",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "demo": "electron . --demo",
+    "test": "node --test",
+    "hooks": "node scripts/hooks.mjs",
+    "icons": "node scripts/make-icons.mjs",
+    "package": "electron-packager . \"Agents Huddle\" --platform=win32 --arch=x64 --out=dist --overwrite --icon=assets/icon.ico --ignore=\"^/(\\.scratch|test|dist|docs|scripts)($|/)\" --ignore=\"^/node_modules/lucide-static/(dist|font|sprite\\.svg|icon-nodes\\.json|tags\\.json)\" --ignore=\"^/node_modules/@fontsource-variable/[^/]+/files/(?!.*latin-wght-normal\\.woff2$)\""
+  },
+  "dependencies": {
+    "@fontsource-variable/geist-mono": "^5.3.0",
+    "@fontsource-variable/instrument-sans": "^5.3.0",
+    "htm": "^3.1.1",
+    "lucide-static": "^1.78.0"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "electron": "^45.4.1"
+  }
+}

@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use or build on this software, please cite it as below."
+type: software
+title: "Agents Huddle"
+abstract: "A desktop widget that shows what each Claude Code session is doing and lets you allow, deny or answer its requests."
+authors:
+  - given-names: "Yasir"
+version: "0.1.0"
+date-released: "2026-11-24"
+license: MIT
+repository-code: "https://github.com/yasirldn/agents-huddle-for-claude-code"
