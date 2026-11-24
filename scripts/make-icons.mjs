@@ -7,8 +7,8 @@ import { crc32, deflateSync } from "node:zlib";
 
 const out = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "assets");
 
-const BODY = [0x5b, 0x8d, 0xef];
-const SHADE = [0x4a, 0x76, 0xcf];
+const BODY = [217, 119, 87];
+const SHADE = [184, 94, 64];
 const INK = [0x17, 0x17, 0x1a];
 
 // The figure on a 40 by 48 grid: two feet, a body, two eyes and a mouth.

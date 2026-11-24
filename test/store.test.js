@@ -125,6 +125,22 @@ test("the same request sent twice is found so the second can join the first", ()
   assert.equal(huddle.findRequest("question", payload), null);
 });
 
+test("rows follow the last message sent, newest first, after anything that needs you", () => {
+  const { huddle, tick } = setup();
+  const prompt = (id) => (tick(), huddle.apply({ session_id: id, hook_event_name: "UserPromptSubmit", prompt: id }));
+  const order = () => huddle.snapshot().sessions.map((session) => session.id);
+  prompt("a");
+  prompt("b");
+  prompt("c");
+  assert.deepEqual(order(), ["c", "b", "a"]);
+  prompt("a");
+  assert.deepEqual(order(), ["a", "c", "b"]);
+  huddle.apply({ session_id: "b", hook_event_name: "PreToolUse", tool_name: "Read", tool_use_id: "x", tool_input: {} });
+  assert.deepEqual(order(), ["a", "c", "b"], "work alone does not move a row");
+  huddle.addRequest("permission", { session_id: "b", tool_name: "Bash", tool_input: { command: "ls" } });
+  assert.deepEqual(order(), ["b", "a", "c"]);
+});
+
 test("a question request exposes its options", () => {
   const { huddle, row } = setup();
   const questions = [{ question: "Which colour?", header: "Colour", multiSelect: false, options: [{ label: "Red", description: "Warm" }, { label: "Blue", description: "Cool" }] }];
@@ -187,6 +203,12 @@ test("characters that hide or reorder text, and long blank runs, show as markers
   const { huddle, row } = setup();
   huddle.addRequest("permission", { session_id: "a", tool_name: "Bash", tool_input: { command: "echo safe\u202Exe.sh\r\n\n\n\n\n\nrm -rf build" } });
   assert.equal(row().request.detail, "echo safe⟨U+202E⟩xe.sh\n⟨5 blank lines⟩\nrm -rf build");
+});
+
+test("unusual spaces and blank fillers show as markers too", () => {
+  const { huddle, row } = setup();
+  huddle.addRequest("permission", { session_id: "a", tool_name: "Bash", tool_input: { command: "rm -rfㅤ x y\tz" } });
+  assert.equal(row().request.detail, "rm⟨U+00A0⟩-rf⟨U+3164⟩ x⟨U+2028⟩y\tz");
 });
 
 test("an edit shows the text it replaces and any replace-all switch", () => {

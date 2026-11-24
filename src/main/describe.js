@@ -82,11 +82,15 @@ const diff = (before, after) => [...lines(before).map((line) => `- ${line}`), ..
 
 // Characters that would hide or reorder text, and long blank runs, are shown as
 // markers, so what the card shows is what would be approved.
-const HIDDEN_CHARACTERS = /[\u0000-\u0008\u000B-\u001F\u007F-\u009F​-‏‪-‮⁠-⁤⁦-⁩﻿]/g;
+// Control and format characters, line and paragraph separators, every space other
+// than a plain one, and the blank Hangul fillers.
+const HIDDEN_CHARACTERS = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}\p{Zs}ᅟᅠㅤﾠ]/gu;
 function visible(text) {
   return text
     .replace(/\r\n?/g, "\n")
-    .replace(HIDDEN_CHARACTERS, (character) => `⟨U+${character.codePointAt(0).toString(16).toUpperCase().padStart(4, "0")}⟩`)
+    .replace(HIDDEN_CHARACTERS, (character) =>
+      character === "\n" || character === "\t" || character === " " ? character : `⟨U+${character.codePointAt(0).toString(16).toUpperCase().padStart(4, "0")}⟩`,
+    )
     .replace(/[ \t]{20,}/g, (run) => ` ⟨${run.length} spaces⟩ `)
     .replace(/(?:[ \t]*\n){4,}/g, (run) => `\n⟨${run.split("\n").length - 2} blank lines⟩\n`);
 }

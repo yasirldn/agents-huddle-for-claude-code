@@ -14,7 +14,7 @@ A small always-on-top widget for Windows that shows what each Claude Code sessio
 - Questions a session asks, with its options as buttons
 - The plan, recent steps and last terminal output of any session you open
 
-The figures move only while their session is working. Sound is off until you turn it on.
+The figures dance while their session works, jump when it needs you and hop once when it finishes. The session you messaged most recently is orange, and older ones shade through green to blue. Sound is off until you turn it on.
 
 ## Run it
 

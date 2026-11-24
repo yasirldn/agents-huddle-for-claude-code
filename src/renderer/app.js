@@ -94,7 +94,7 @@ function Meta({ session }) {
 
 function Summary({ session }) {
   return html`
-    <${Figure} n=${session.n} mood=${session.mood} />
+    <${Figure} n=${session.n} mood=${session.mood} tone=${session.tone} />
     <div class="text">
       <div class="title">${session.title}</div>
       <div class="activity">${activityLine(session)}</div>
@@ -259,7 +259,7 @@ function Minis({ sessions, onPick }) {
       ${sessions.slice(0, 6).map(
         (session) => html`
           <button key=${session.id} class="mini" title=${session.title} aria-label=${session.title} onClick=${() => onPick(session.id)}>
-            <${Figure} n=${session.n} mood=${session.mood} size=${20} />
+            <${Figure} n=${session.n} mood=${session.mood} size=${20} tone=${session.tone} />
           </button>
         `,
       )}
@@ -268,7 +268,9 @@ function Minis({ sessions, onPick }) {
 }
 
 function App({ boot }) {
-  const [sessions, setSessions] = useState(boot.sessions);
+  const [listed, setSessions] = useState(boot.sessions);
+  // Position in the list sets each figure's colour, orange at the top to blue at the bottom.
+  const sessions = listed.map((session, index) => ({ ...session, tone: listed.length > 1 ? index / (listed.length - 1) : 0 }));
   const [connection, setConnection] = useState(boot.connection);
   const [sound, setSound] = useState(boot.config.sound);
   const [collapsedPref, setCollapsedPref] = useState(boot.view === "collapsed" || boot.config.collapsed);

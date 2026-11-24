@@ -550,33 +550,132 @@ button {
   color: var(--text-3);
 }
 
-/* Figures. They move only while the agent they stand for is live. */
+/* Figures. They dance while their agent works, jump while it needs you, hop
+   once when it finishes and stay still at rest. */
+
+.fig-body {
+  transform-box: view-box;
+  transform-origin: 20px 44px;
+}
+.fig-dance .fig-body {
+  animation: fig-dance 900ms ease-in-out var(--fig-delay, 0s) infinite;
+}
+.fig-dance .fig-foot-left,
+.fig-dance .fig-foot-right {
+  animation: fig-step 900ms ease-in-out var(--fig-delay, 0s) infinite;
+}
+.fig-dance .fig-foot-right {
+  animation-delay: calc(var(--fig-delay, 0s) - 450ms);
+}
+.fig-sway .fig-body {
+  animation: fig-sway 1600ms ease-in-out var(--fig-delay, 0s) infinite;
+}
+.fig-jump .fig-body {
+  animation: fig-jump 1100ms cubic-bezier(0.3, 0.7, 0.4, 1) infinite;
+}
+.fig-jump .fig-shadow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fig-shadow 1100ms cubic-bezier(0.3, 0.7, 0.4, 1) infinite;
+}
+.fig-cheer .fig-body {
+  animation: fig-cheer 700ms var(--ease) 1;
+}
 
 .fig-eyes {
   transform-box: fill-box;
   transform-origin: center;
   animation: fig-blink 5.2s var(--fig-delay, 0s) infinite;
 }
-.fig-done .fig-eyes,
-.fig-idle .fig-eyes {
+.fig-done .fig-eyes {
   animation: none;
 }
 .fig-look .fig-gaze {
   animation: fig-look 2.8s var(--ease) infinite;
 }
-.fig-type .fig-gaze {
-  transform: translateY(1.5px);
-}
-.fig-type .fig-lift {
-  animation: fig-bob 0.7s ease-in-out infinite;
-}
 .fig-think .fig-gaze {
-  transform: translate(1.2px, -1.6px);
+  transform: translate(1.2px, -1.4px);
 }
 .fig-ask .fig-arm {
   transform-box: fill-box;
   transform-origin: 50% 100%;
-  animation: fig-wave 1.4s ease-in-out infinite;
+  animation: fig-wave 550ms ease-in-out infinite alternate;
+}
+
+@keyframes fig-dance {
+  0%,
+  100% {
+    transform: rotate(-6deg) translateY(0);
+  }
+  25% {
+    transform: rotate(0deg) translateY(-2.5px);
+  }
+  50% {
+    transform: rotate(6deg) translateY(0);
+  }
+  75% {
+    transform: rotate(0deg) translateY(-2.5px);
+  }
+}
+@keyframes fig-step {
+  0%,
+  50%,
+  100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-2px);
+  }
+}
+@keyframes fig-sway {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+@keyframes fig-jump {
+  0%,
+  70%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  15% {
+    transform: translateY(0) scale(1.06, 0.92);
+  }
+  35% {
+    transform: translateY(-7px) scale(0.95, 1.06);
+  }
+  55% {
+    transform: translateY(0) scale(1.05, 0.94);
+  }
+}
+@keyframes fig-shadow {
+  0%,
+  15%,
+  55%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  35% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+}
+@keyframes fig-cheer {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-6px) rotate(-4deg);
+  }
+  70% {
+    transform: translateY(0) scale(1.04, 0.96);
+  }
 }
 
 @keyframes fig-blink {
@@ -602,22 +701,12 @@ button {
     transform: translateX(-1.6px);
   }
 }
-@keyframes fig-bob {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(0.8px);
-  }
-}
 @keyframes fig-wave {
-  0%,
-  100% {
-    transform: rotate(-8deg);
+  from {
+    transform: rotate(-10deg);
   }
-  50% {
-    transform: rotate(12deg);
+  to {
+    transform: rotate(16deg);
   }
 }
 @keyframes spin {

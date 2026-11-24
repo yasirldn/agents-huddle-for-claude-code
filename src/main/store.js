@@ -322,8 +322,8 @@ export class Huddle {
     return type === "question" ? { id, type, questions } : { id, type, title, where, detail, mono, tabOnly, note };
   }
 
-  // Agents that need you come first, oldest request first. The rest keep the
-  // order they arrived in, so rows do not move while you read them.
+  // Agents that need you come first, oldest request first. The rest follow the
+  // last message you sent them, newest first, so a row moves only when you send one.
   snapshot() {
     const sessions = [...this.sessions.values()].filter((session) => !session.hidden).map((session) => this.view(session));
     sessions.sort((a, b) => {
@@ -331,7 +331,8 @@ export class Huddle {
       const needB = b.status === "needs-you";
       if (needA !== needB) return needA ? -1 : 1;
       if (needA && a.waitingSince !== b.waitingSince) return a.waitingSince - b.waitingSince;
-      return a.n - b.n;
+      if (a.promptAt !== b.promptAt) return b.promptAt - a.promptAt;
+      return b.n - a.n;
     });
     return { sessions };
   }
