@@ -51,6 +51,8 @@ npm run package
 
 This writes a standalone app to `dist/Agents Huddle-win32-x64`.
 
+To build the Microsoft Store package, run `npm run store`. It writes an unsigned package to `dist-store`, which the Store signs on upload. Set `STORE_IDENTITY_NAME`, `STORE_PUBLISHER` and `STORE_PUBLISHER_NAME` to the values on the app's Product identity page in Partner Center first. Without them it builds a test package with placeholder values.
+
 ## How it works
 
 Each hook runs a short relay script that forwards the event to the widget over a local named pipe. Nothing leaves the computer. Before the relay sends anything, the widget must prove it knows a secret kept in your own profile folder. So another account on the same computer can neither read your sessions nor answer for them.

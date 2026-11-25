@@ -101,6 +101,21 @@ export function findNode() {
   throw new Error("Node.js was not found on this computer");
 }
 
+// The relay paths the widget's hooks in a settings file point at.
+export function relaysInSettings(settingsPath) {
+  try {
+    const { settings } = readSettings(settingsPath);
+    const found = Object.values(settings?.hooks ?? {})
+      .flat()
+      .flatMap((group) => group?.hooks ?? [])
+      .filter(isOurHook)
+      .flatMap((hook) => hook.args.filter((arg) => isOurHook({ args: [arg] })));
+    return [...new Set(found)];
+  } catch {
+    return [];
+  }
+}
+
 export function status({ settingsPath, relayTarget }) {
   try {
     return { connected: hasHooks(readSettings(settingsPath).settings) && existsSync(relayTarget) };

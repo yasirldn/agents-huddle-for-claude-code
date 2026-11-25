@@ -13,9 +13,17 @@ export function pipePath(env = process.env) {
 
 export function dataDir(env = process.env) {
   if (env.AGENTS_HUDDLE_DATA) return env.AGENTS_HUDDLE_DATA;
-  if (process.platform === "win32") return path.join(env.APPDATA ?? path.join(os.homedir(), "AppData", "Roaming"), APP_ID);
+  // On Windows the data sits outside AppData, because a Store install keeps
+  // AppData writes private to the app, where the hooks could not reach them.
+  if (process.platform === "win32") return path.join(os.homedir(), `.${APP_ID}`);
   if (process.platform === "darwin") return path.join(os.homedir(), "Library", "Application Support", APP_ID);
   return path.join(env.XDG_CONFIG_HOME ?? path.join(os.homedir(), ".config"), APP_ID);
+}
+
+// Where earlier versions kept their data on Windows.
+export function legacyDataDir(env = process.env) {
+  if (env.AGENTS_HUDDLE_DATA || process.platform !== "win32") return null;
+  return path.join(env.APPDATA ?? path.join(os.homedir(), "AppData", "Roaming"), APP_ID);
 }
 
 export function tokenPath(env = process.env) {

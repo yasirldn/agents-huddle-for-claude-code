@@ -25,7 +25,7 @@ function pipePath() {
 }
 function dataDir() {
   if (process.env.AGENTS_HUDDLE_DATA) return process.env.AGENTS_HUDDLE_DATA;
-  if (process.platform === "win32") return path.join(process.env.APPDATA ?? path.join(os.homedir(), "AppData", "Roaming"), "agents-huddle");
+  if (process.platform === "win32") return path.join(os.homedir(), ".agents-huddle");
   if (process.platform === "darwin") return path.join(os.homedir(), "Library", "Application Support", "agents-huddle");
   return path.join(process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), ".config"), "agents-huddle");
 }

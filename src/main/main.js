@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, Menu, nativeImage, screen, shell, Tray } from "electron";
 import { randomBytes } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadDemo } from "./demo.js";
@@ -8,7 +8,7 @@ import { goToSession } from "./go-to.js";
 import * as hooks from "./hooks-config.js";
 import { createHookServer } from "./server.js";
 import { Huddle } from "./store.js";
-import { claudeSettingsPath, dataDir, installedRelayPath, pipePath, tokenPath } from "../shared/paths.js";
+import { claudeSettingsPath, dataDir, installedRelayPath, legacyDataDir, pipePath, tokenPath } from "../shared/paths.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, "..", "..");
@@ -35,7 +35,22 @@ const settingsPath = claudeSettingsPath();
 const relayTarget = installedRelayPath();
 const relaySource = path.join(here, "..", "hook", "relay.mjs");
 
-app.setPath("userData", path.join(storage, demo ? "electron-demo" : "electron"));
+// Carries settings, remembered sessions and the secret over from where earlier versions kept them.
+function moveOldData() {
+  const old = legacyDataDir();
+  if (demo || !old || path.resolve(old) === path.resolve(storage) || !existsSync(old)) return;
+  for (const name of ["config.json", "state.json", "token"]) {
+    const from = path.join(old, name);
+    const to = path.join(storage, name);
+    if (!existsSync(from) || existsSync(to)) continue;
+    mkdirSync(storage, { recursive: true });
+    copyFileSync(from, to);
+  }
+}
+moveOldData();
+
+// The browser cache is private to the app, so on Windows it stays in AppData.
+app.setPath("userData", path.join(legacyDataDir() ?? storage, demo ? "electron-demo" : "electron"));
 app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required");
 
 const readJson = (file, fallback) => {
@@ -267,7 +282,8 @@ function buildTrayMenu() {
     { type: "separator" },
     { label: connected ? "Disconnect Claude Code" : "Connect Claude Code", enabled: !demo, click: () => (connected ? disconnect() : connect()) },
   ];
-  if (app.isPackaged) {
+  // A Store install cannot set itself to start with Windows this way.
+  if (app.isPackaged && !process.windowsStore) {
     items.push({
       label: "Start with Windows",
       type: "checkbox",
@@ -325,8 +341,15 @@ function disconnect() {
 
 // Keeps the installed relay in step with the one this version ships.
 function refreshRelay() {
-  if (demo || !connection().connected) return;
+  if (demo) return;
   try {
+    // Hooks set up by an earlier version point at its relay, so they are moved to this one.
+    const relays = hooks.relaysInSettings(settingsPath);
+    if (relays.length && relays.some((relay) => path.resolve(relay) !== path.resolve(relayTarget))) {
+      hooks.install({ settingsPath, relaySource, relayTarget, holdSeconds: config.holdSeconds });
+      return;
+    }
+    if (!connection().connected) return;
     const shipped = readFileSync(relaySource);
     if (!existsSync(relayTarget) || !shipped.equals(readFileSync(relayTarget))) writeFileSync(relayTarget, shipped);
   } catch (error) {

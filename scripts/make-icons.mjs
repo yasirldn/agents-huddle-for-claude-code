@@ -27,13 +27,14 @@ function inside(layer, x, y) {
   return dx * dx + dy * dy <= layer.r * layer.r;
 }
 
-function draw(size) {
-  const pixels = Buffer.alloc(size * size * 4);
-  const scale = size / 48;
-  const offsetX = (size - 40 * scale) / 2;
+function draw(width, height = width, fill = 1) {
+  const pixels = Buffer.alloc(width * height * 4);
+  const scale = (height * fill) / 48;
+  const offsetX = (width - 40 * scale) / 2;
+  const offsetY = (height - 48 * scale) / 2;
   const samples = 4;
-  for (let py = 0; py < size; py++) {
-    for (let px = 0; px < size; px++) {
+  for (let py = 0; py < height; py++) {
+    for (let px = 0; px < width; px++) {
       let r = 0;
       let g = 0;
       let b = 0;
@@ -41,7 +42,7 @@ function draw(size) {
       for (let sy = 0; sy < samples; sy++) {
         for (let sx = 0; sx < samples; sx++) {
           const x = (px + (sx + 0.5) / samples - offsetX) / scale;
-          const y = (py + (sy + 0.5) / samples) / scale;
+          const y = (py + (sy + 0.5) / samples - offsetY) / scale;
           const hit = layers.findLast((layer) => inside(layer, x, y));
           if (!hit) continue;
           r += hit.color[0];
@@ -50,7 +51,7 @@ function draw(size) {
           covered += 1;
         }
       }
-      const at = (py * size + px) * 4;
+      const at = (py * width + px) * 4;
       if (!covered) continue;
       pixels[at] = Math.round(r / covered);
       pixels[at + 1] = Math.round(g / covered);
@@ -61,10 +62,10 @@ function draw(size) {
   return pixels;
 }
 
-function png(size, pixels) {
-  const stride = size * 4 + 1;
-  const raw = Buffer.alloc(stride * size);
-  for (let y = 0; y < size; y++) pixels.copy(raw, y * stride + 1, y * size * 4, (y + 1) * size * 4);
+function png(width, pixels, height = width) {
+  const stride = width * 4 + 1;
+  const raw = Buffer.alloc(stride * height);
+  for (let y = 0; y < height; y++) pixels.copy(raw, y * stride + 1, y * width * 4, (y + 1) * width * 4);
   const chunk = (type, data) => {
     const body = Buffer.concat([Buffer.from(type), data]);
     const length = Buffer.alloc(4);
@@ -74,8 +75,8 @@ function png(size, pixels) {
     return Buffer.concat([length, body, check]);
   };
   const header = Buffer.alloc(13);
-  header.writeUInt32BE(size, 0);
-  header.writeUInt32BE(size, 4);
+  header.writeUInt32BE(width, 0);
+  header.writeUInt32BE(height, 4);
   header[8] = 8;
   header[9] = 6;
   return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk("IHDR", header), chunk("IDAT", deflateSync(raw)), chunk("IEND", Buffer.alloc(0))]);
@@ -106,4 +107,15 @@ const images = sizes.map((size) => ({ size, data: png(size, draw(size)) }));
 writeFileSync(path.join(out, "tray.png"), images[1].data);
 writeFileSync(path.join(out, "icon.png"), images[3].data);
 writeFileSync(path.join(out, "icon.ico"), ico(images));
-console.log(`wrote tray.png, icon.png and icon.ico to ${out}`);
+// Tile images for the Microsoft Store package.
+const tiles = path.join(out, "..", "build", "appx");
+mkdirSync(tiles, { recursive: true });
+for (const [name, width, height, fill] of [
+  ["StoreLogo.png", 50, 50, 0.84],
+  ["Square44x44Logo.png", 44, 44, 0.84],
+  ["Square150x150Logo.png", 150, 150, 0.6],
+  ["Wide310x150Logo.png", 310, 150, 0.6],
+]) {
+  writeFileSync(path.join(tiles, name), png(width, draw(width, height, fill), height));
+}
+console.log(`wrote tray.png, icon.png and icon.ico to ${out}, and the Store tiles to ${tiles}`);

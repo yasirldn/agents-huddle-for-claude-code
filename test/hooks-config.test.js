@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync } from "no
 import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
-import { addHooks, buildGroups, hasHooks, install, removeHooks, status, uninstall } from "../src/main/hooks-config.js";
+import { addHooks, buildGroups, hasHooks, install, relaysInSettings, removeHooks, status, uninstall } from "../src/main/hooks-config.js";
 
 const groups = buildGroups({ node: "node", relay: path.join("C:", "data", "agents-huddle", "hook", "agents-huddle-relay.mjs"), holdSeconds: 300 });
 
@@ -93,6 +93,21 @@ test("a settings file that is not valid JSON is left alone", () => {
     writeFileSync(path.join(dir, "relay.mjs"), "");
     assert.throws(() => install({ settingsPath, relaySource: path.join(dir, "relay.mjs"), relayTarget: path.join(dir, "agents-huddle", "hook", "relay.mjs"), node: "node" }), /not valid JSON/);
     assert.equal(readFileSync(settingsPath, "utf8"), "{ broken");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("the relay paths the widget's hooks point at can be read back", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "agents-huddle-test-"));
+  try {
+    const settingsPath = path.join(dir, "settings.json");
+    const old = path.win32.join("C:", "Users", "x", "AppData", "Roaming", "agents-huddle", "hook", "agents-huddle-relay.mjs");
+    writeFileSync(settingsPath, JSON.stringify(addHooks(existing, buildGroups({ node: "node", relay: old }))));
+    assert.deepEqual(relaysInSettings(settingsPath), [old]);
+    writeFileSync(settingsPath, JSON.stringify(existing));
+    assert.deepEqual(relaysInSettings(settingsPath), []);
+    assert.deepEqual(relaysInSettings(path.join(dir, "missing.json")), []);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
